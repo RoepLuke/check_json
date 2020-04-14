@@ -158,8 +158,8 @@ my $json_response = decode_json($response->content);
 if ($np->opts->verbose) { (print Dumper ($json_response))};
 
 my @attributes = split(',', $np->opts->attributes);
-my @warning = split(',', $np->opts->warning);
-my @critical = split(',', $np->opts->critical);
+my @warning = $np->opts->warning ? split(',',$np->opts->warning) : () ;
+my @critical = $np->opts->critical ? split(',',$np->opts->critical) : () ;
 my @divisor = $np->opts->divisor ? split(',',$np->opts->divisor) : () ;
 my %attributes = map { $attributes[$_] => { warning => $warning[$_] , critical => $critical[$_], divisor => ($divisor[$_] or 0) } } 0..$#attributes;
 
