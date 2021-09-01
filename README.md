@@ -61,7 +61,7 @@ Requirements
 
 Perl JSON package
 
-* Debian / Ubuntu : libjson-perl libmonitoring-plugin-perl libwww-perl
+* Debian / Ubuntu : libjson-perl libmonitoring-plugin-perl libwww-perl libdatetime-format-iso8601-perl
 
 Icinga2 Integration
 ===================
