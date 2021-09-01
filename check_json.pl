@@ -7,6 +7,7 @@ use LWP::UserAgent;
 use JSON;
 use Monitoring::Plugin;
 use Data::Dumper;
+use DateTime::Format::ISO8601;
 
 my $np = Monitoring::Plugin->new(
     usage => "Usage: %s -u|--url <http://user:pass\@host:port/url> -a|--attributes <attributes> "
@@ -111,6 +112,13 @@ $np->add_arg(
     help => "-b|--bearer\n   Use Bearer Token authentication in header",
 );
 
+$np->add_arg(
+    spec => 'isdate',
+    help => "--isdate\n     attributes to check are dates.\n"
+    ."The difference between the given date and now is used to determine thresholds in seconds.\n"
+    ."e.g. '--warning 24: --divisor 3600' to warn when the date is more than a day old." ,
+);
+
 ## Parse @ARGV and process standard arguments (e.g. usage, help, version)
 $np->getopts;
 if ($np->opts->verbose) { (print Dumper ($np))};
@@ -145,6 +153,9 @@ if ($np->opts->metadata) {
     $response = $ua->request(GET $np->opts->url);
 }
 
+#Now is the moment the response was received.
+my $now = DateTime->now();
+
 if ($response->is_success) {
     if (!($response->header("content-type") =~ $np->opts->contenttype)) {
         $np->nagios_exit(UNKNOWN,"Content type is not JSON: ".$response->header("content-type"));
@@ -161,7 +172,8 @@ my @attributes = split(',', $np->opts->attributes);
 my @warning = $np->opts->warning ? split(',',$np->opts->warning) : () ;
 my @critical = $np->opts->critical ? split(',',$np->opts->critical) : () ;
 my @divisor = $np->opts->divisor ? split(',',$np->opts->divisor) : () ;
-my %attributes = map { $attributes[$_] => { warning => $warning[$_] , critical => $critical[$_], divisor => ($divisor[$_] or 0) } } 0..$#attributes;
+my @isdate = $np->opts->isdate ? split(',',$np->opts->isdate) : ();
+my %attributes = map { $attributes[$_] => { warning => $warning[$_] , critical => $critical[$_], divisor => ($divisor[$_] or 0), isdate => ($isdate[$_] or 0) } } 0..$#attributes;
 
 my %check_value;
 my $check_value;
@@ -177,6 +189,17 @@ foreach my $attribute (sort keys %attributes){
 
     if (!defined $check_value) {
         $np->nagios_exit(UNKNOWN, "No value received");
+    }
+
+    # The difference between the given date and now is used as new check_value in seconds
+    if ($attributes{$attribute}{'isdate'}){
+        my $date;
+        eval {
+            $date = DateTime::Format::ISO8601->parse_datetime($check_value);
+        };
+        if ( $@ ) { $np->nagios_exit(UNKNOWN, "Date is not valid.");}
+
+        $check_value = $now->subtract_datetime_absolute($date)->seconds;
     }
 
     if ($attributes{$attribute}{'divisor'}) {
