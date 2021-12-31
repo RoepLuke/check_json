@@ -22,8 +22,10 @@ my $np = Monitoring::Plugin->new(
     . "[ --ignoressl ] "
     . "[ -x|--xauth <X-Auth-Token> ] "
     . "[ -b|--bearer <Bearer-Token> ] "
+    . "[ -A|--hattrib <value> ] "
+    . "[ -C|--hcon <value> ] "
     . "[ -h|--help ] ",
-    version => '0.5',
+    version => '0.51',
     blurb   => 'Nagios plugin to check JSON attributes via http(s)',
     extra   => "\nExample: \n"
     . "check_json.pl --url http://192.168.5.10:9332/local_stats --attributes '{shares}->{dead}' "
@@ -117,6 +119,14 @@ $np->add_arg(
     help => "--isdate\n     attributes to check are dates.\n"
     ."The difference between the given date and now is used to determine thresholds in seconds.\n"
     ."e.g. '--warning 24: --divisor 3600' to warn when the date is more than a day old." ,
+    spec => 'hattrib|A=s',
+    help => "-A, --header-attrib STRING \n "
+    . "Additional Header attribute.",
+);
+$np->add_arg(
+    spec => 'hcon|C=s',
+    help => "-C, --header-content STRING \n "
+    . "Additional Header content.",
 );
 
 ## Parse @ARGV and process standard arguments (e.g. usage, help, version)
@@ -128,6 +138,7 @@ my $ua = LWP::UserAgent->new;
 $ua->env_proxy;
 $ua->agent('check_json/0.5');
 $ua->default_header('Accept' => 'application/json');
+$ua->default_header($np->opts->hattrib => $np->opts->hcon);
 $ua->protocols_allowed( [ 'http', 'https'] );
 $ua->parse_head(0);
 $ua->timeout($np->opts->timeout);
