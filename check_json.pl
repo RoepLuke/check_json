@@ -119,10 +119,14 @@ $np->add_arg(
     help => "--isdate\n     attributes to check are dates.\n"
     ."The difference between the given date and now is used to determine thresholds in seconds.\n"
     ."e.g. '--warning 24: --divisor 3600' to warn when the date is more than a day old." ,
+);
+
+$np->add_arg(
     spec => 'hattrib|A=s',
     help => "-A, --header-attrib STRING \n "
     . "Additional Header attribute.",
 );
+
 $np->add_arg(
     spec => 'hcon|C=s',
     help => "-C, --header-content STRING \n "
