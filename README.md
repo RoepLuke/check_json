@@ -18,8 +18,8 @@ check_json -u|--url <URL> -a|--attribute <attribute> [ -c|--critical <threshold/
 ### Array of Valid Values Example
 ```
 ./check_json.pl -u https://some.rest.api/v3/status -a "{status}" --warning "warn" --critical "err" --normal "ok,init" --isarrayofvalidvalues -o "{status}"
-./check_json.pl -u https://some.rest.api/v3/settings -a "{setting_1_mixed}" --warning "1,warn" --critical "2,err" --normal "ok,0" --isarrayofvalidvalues -o "setting_1_mixed"
-./check_json.pl -u https://some.rest.api/v3/settings -a "{setting_2_int}" --warning "1" --critical "2" --normal "0" --isarrayofvalidvalues -o "setting_2_int"
+./check_json.pl -u https://some.rest.api/v3/settings -a "{setting_1_mixed}" --warning "1,warn" --critical "2,err" --normal "ok,0" --isarrayofvalidvalues -o "{setting_1_mixed}"
+./check_json.pl -u https://some.rest.api/v3/settings -a "{setting_2_int}" --warning "1" --critical "2" --normal "0" --isarrayofvalidvalues -o "{setting_2_int}"
 
 ```
 Result:
