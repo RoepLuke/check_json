@@ -8,7 +8,7 @@ This Plugin is a fork of the existing JSON Plugin from https://github.com/c-kr/c
 This particular fork allows to check for dates in the JSON. The date is compared against the current time and the difference in seconds is used as attribute.
 Also perfvars and outputvars is fixed for more easy access, just as it was implemented for attributes.
 
-**This fork will also (when implemented) allow you to specify an array of valid values (int or String) for a critical / warning / normal values. This will be activated via the --isarrayofvalidvalues switch and change the interpretation of --critical and --warning to arrays of valid values. A new parameter will be added (--normal) which will only work the same and only in combination with --isarrayofvalidvalues. This new option --isarrayofvalidvalues cannot be used in combination with --isdate. Thresholds are not available even when only supplying integers als valid values.**
+**This fork will also (when implemented) allow you to specify an array of valid values (int or String) for a critical / warning / normal values. This will be activated via the --isarrayofvalidvalues switch and change the interpretation of --critical and --warning to arrays of valid values. A new parameter will be added (--normal) which will work the same as --warning or --critical but only in combination with --isarrayofvalidvalues. This new option --isarrayofvalidvalues cannot be used in combination with --isdate. Thresholds are not available even when only supplying integers als valid values.**
 
 Usage: 
 ```
