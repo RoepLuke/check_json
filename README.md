@@ -1,16 +1,32 @@
 check_json
 ==========
 
-Nagios plugin to check JSON attributes via http(s).
+Nagios/Icinga2 plugin to check JSON attributes via http(s).
 
 This Plugin is a fork of the existing JSON Plugin from https://github.com/c-kr/check_json with the enhancements of using the Monitoring::Plugin Perl Module, allowing to use thresholds and performance data collection from various json attributes, and of https://github.com/jiririedl/check_json supporting X-Auth and Bearer Token authorization methods. Performance data is also enhanced to extract performance data compliant to Nagios and Graphite standards. One attribute is selected for thresholds check, multiple others can be added for extracting performance data. This plugin is aimed at simplifying Nagios, Icinga & Icinga2 polling of JSON status APIs.
 
 This particular fork allows to check for dates in the JSON. The date is compared against the current time and the difference in seconds is used as attribute.
 Also perfvars and outputvars is fixed for more easy access, just as it was implemented for attributes.
 
+**This fork will also (when implemented) allow you to specify an array of valid values (int or String) for a critical / warning / normal values. This will be activated via the --isarrayofvalidvalues switch and change the interpretation of --critical and --warning to arrays of valid values. A new parameter will be added (--normal) which will only work the same and only in combination with --isarrayofvalidvalues. This new option --isarrayofvalidvalues cannot be used in combination with --isdate. Thresholds are not available even when only supplying integers als valid values.**
+
 Usage: 
 ```
-check_json -u|--url <URL> -a|--attribute <attribute> [ -c|--critical <threshold> ] [ -w|--warning <threshold> ] [ -p|--perfvars <fields> ] [ -o|--outputvars <fields> ] [ -t|--timeout <timeout> ] [ -d|--divisor <divisor> ] [ -T|--contenttype <content-type> ] [ --ignoressl ] [--isdate] [ -h|--help ]
+check_json -u|--url <URL> -a|--attribute <attribute> [ -c|--critical <threshold/array of valid values> ] [ -w|--warning <threshold/array of valid values> ] [ -n|--normal <array of valid values> ] [ -p|--perfvars <fields> ] [ -o|--outputvars <fields> ] [ -t|--timeout <timeout> ] [ -d|--divisor <divisor> ] [ -T|--contenttype <content-type> ] [ --ignoressl ] [--isdate] [--isarrayofvalidvalues] [ -h|--help ]
+```
+
+### Array of Valid Values Example
+```
+./check_json.pl -u https://some.rest.api/v3/status -a "{status}" --warning "warn" --critical "err" --normal "ok,init" --isarrayofvalidvalues -o "{status}"
+./check_json.pl -u https://some.rest.api/v3/settings -a "{setting_1_mixed}" --warning "1,warn" --critical "2,err" --normal "ok,0" --isarrayofvalidvalues -o "setting_1_mixed"
+./check_json.pl -u https://some.rest.api/v3/settings -a "{setting_2_int}" --warning "1" --critical "2" --normal "0" --isarrayofvalidvalues -o "setting_2_int"
+
+```
+Result:
+```
+Check JSON status API OK - status: ok
+Check JSON status API OK - setting_1_mixed: 0
+Check JSON status API OK - setting_2_int: 0
 ```
 
 ### Date Example
