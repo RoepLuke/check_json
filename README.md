@@ -12,7 +12,7 @@ Also perfvars and outputvars is fixed for more easy access, just as it was imple
 
 Usage: 
 ```
-check_json -u|--url <URL> -a|--attribute <attribute> [ -c|--critical <threshold/array of valid values> ] [ -w|--warning <threshold/array of valid values> ] [ -n|--normal <array of valid values> ] [ -p|--perfvars <fields> ] [ -o|--outputvars <fields> ] [ -t|--timeout <timeout> ] [ -d|--divisor <divisor> ] [ -T|--contenttype <content-type> ] [ --ignoressl ] [--isdate] [--isarrayofvalidvalues] [ -h|--help ]
+check_json -u|--url <URL> -a|--attribute <attribute> [ -c|--critical <integer threshold/array of valid values> ] [ -w|--warning <integer threshold/array of valid values> ] [ -n|--normal <array of valid values> ] [ -p|--perfvars <fields> ] [ -o|--outputvars <fields> ] [ -t|--timeout <timeout> ] [ -d|--divisor <divisor> ] [ -T|--contenttype <content-type> ] [ --ignoressl ] [--isdate] [--isarrayofvalidvalues] [ -h|--help ]
 ```
 
 ### Array of Valid Values Example
