@@ -142,7 +142,9 @@ my $ua = LWP::UserAgent->new;
 $ua->env_proxy;
 $ua->agent('check_json/0.5');
 $ua->default_header('Accept' => 'application/json');
+if (defined($np->opts->hattrib)) {
 $ua->default_header($np->opts->hattrib => $np->opts->hcon);
+}
 $ua->protocols_allowed( [ 'http', 'https'] );
 $ua->parse_head(0);
 $ua->timeout($np->opts->timeout);
