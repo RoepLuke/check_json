@@ -8,26 +8,102 @@ This Plugin is a fork of the existing JSON Plugin from https://github.com/c-kr/c
 This particular fork allows to check for dates in the JSON. The date is compared against the current time and the difference in seconds is used as attribute.
 Also perfvars and outputvars is fixed for more easy access, just as it was implemented for attributes.
 
-**This fork will also (when implemented) allow you to specify an array of valid values (int or String) for a critical / warning / normal values. This will be activated via the --isarrayofvalidvalues switch and change the interpretation of --critical and --warning to arrays of valid values. A new parameter will be added (--normal) which will work the same as --warning or --critical but only in combination with --isarrayofvalidvalues. This new option --isarrayofvalidvalues cannot be used in combination with --isdate. Thresholds are not available even when only supplying integers als valid values.**
+**This fork will also (when implemented) allow you to specify an array of valid values (int or String) for the critical / warning / normal values. This will change the interpretation of --critical and --warning to arrays of valid values (values delimited by ';'). Single values can still be given as before and are interpreted as before. A new parameter will be added (--normal) which will work the same as --warning or --critical.**
 
-Usage: 
+## Usage: 
 ```
-check_json -u|--url <URL> -a|--attribute <attribute> [ -c|--critical <integer threshold/array of valid values> ] [ -w|--warning <integer threshold/array of valid values> ] [ -n|--normal <array of valid values> ] [ -p|--perfvars <fields> ] [ -o|--outputvars <fields> ] [ -t|--timeout <timeout> ] [ -d|--divisor <divisor> ] [ -T|--contenttype <content-type> ] [ --ignoressl ] [--isdate] [--isarrayofvalidvalues] [ -h|--help ]
+check_json 
+    -u|--url <URL> 
+    -a|--attribute <attribute> 
+    [ -c|--critical <integer threshold/array of valid values> ] 
+    [ -w|--warning <integer threshold/array of valid values> ] 
+    [ -n|--normal <array of valid values> ] 
+    [ -e|--expect <value>] 
+    [ -p|--perfvars <fields> ] 
+    [ -o|--outputvars <fields> ] 
+    [ -t|--timeout <timeout> ] 
+    [ -d|--divisor <divisor> ] 
+    [ -m|--metadata ] 
+    [ -T|--contenttype <content-type> ] 
+    [ --ignoressl ] 
+    [ -x|--xauth <X-Auth-Token> ] 
+    [ -b|--bearer <Bearer-Token> ] 
+    [ -A|--hattrib <value> ] 
+    [ -C|--hcon <value> ] 
+    [--isdate] 
+    [ -h|--help ]
 ```
 
-### Array of Valid Values Example
-```
-./check_json.pl -u https://some.rest.api/v3/status -a "{status}" --warning "warn" --critical "err" --normal "ok,init" --isarrayofvalidvalues -o "{status}"
-./check_json.pl -u https://some.rest.api/v3/settings -a "{setting_1_mixed}" --warning "1,warn" --critical "2,err" --normal "ok,0" --isarrayofvalidvalues -o "{setting_1_mixed}"
-./check_json.pl -u https://some.rest.api/v3/settings -a "{setting_2_int}" --warning "1" --critical "2" --normal "0" --isarrayofvalidvalues -o "{setting_2_int}"
+## Valid Argument combinations:
 
-```
-Result:
-```
-Check JSON status API OK - status: ok
-Check JSON status API OK - setting_1_mixed: 0
-Check JSON status API OK - setting_2_int: 0
-```
+### Check a string/integer value with --expect
+COMMAND BASE: `./check_json.pl -u URL <COMMAND SUFFIX>` 
+| TYPE            | COMMAND SUFFIX                                            | URL_RESPONSE                                             | RES  |
+| --------------- | --------------------------------------------------------- | -------------------------------------------------------- | ---- |
+| Single          | -a '{status}' --expect "ok"                               | '{"status":"ok"}'                                        | OK   |
+| Single          | -a '{errors}' --expect "0"                                | '{"errors":"0"}'                                         | OK   |
+| Multiple        | -a '{status},{patched}' --expect "ok"                     | '{{"status":"ok"},{"patched":"ok"}'                      | OK   |
+| Single Nested   | -a '{status}->{server}' --expect "ok"                     | '{"status":{"server":"ok"}}'                             | OK   |
+| Multiple Nested | -a '{status}->{server},{status}->{gateway}' --expect "ok" | '{"status":{"server":"ok"},{"gateway":"ok"}}'            | OK   |
+| Single          | -a '{status}' --expect "ok"                               | '{"status":"anything else"}'                             | CRIT |
+| Multiple        | -a '{status},{patched}' --expect "ok"                     | '{{"status":"anything else"},{"patched":"ok"}'           | CRIT |
+| Multiple        | -a '{status},{errors}' --expect "ok"                      | '{{"status":"ok"},{"errors":"0"}'                        | CRIT |
+| Multiple        | -a '{status},{patched}' --expect "ok"                     | '{{"status":"ok"},{"patched":"anything else"}'           | CRIT |
+| Single Nested   | -a '{status}->{server}' --expect "ok"                     | '{"status":{"server":"anything else"}}'                  | CRIT |
+| Multiple Nested | -a '{status}->{server},{status}->{gateway}' --expect "ok" | '{"status":{"server":"anything else"},{"gateway":"ok"}}' | CRIT |
+| Multiple Nested | -a '{status}->{server},{status}->{gateway}' --expect "ok" | '{"status":{"server":"ok"},{"gateway":"anything else"}}' | CRIT |
+
+### Check a integer value with thresholds
+COMMAND BASE: `./check_json.pl -u URL <COMMAND SUFFIX>`
+| TYPE            | COMMAND SUFFIX                                              | URL_RESPONSE                                             | RES  |
+| --------------- | ----------------------------------------------------------- | -------------------------------------------------------- | ---- |
+| Single          | -a '{connections}' --warning 10 --critical 20               | '{"connections":"9"}'                                    | OK   |
+| Single          | -a '{connections}' --warning 10 --critical 20               | '{"connections":"10"}'                                   | WARN |
+| Single          | -a '{connections}' --warning 10 --critical 20               | '{"connections":"19"}'                                   | WARN |
+| Single          | -a '{connections}' --warning 10 --critical 20               | '{"connections":"20"}'                                   | CRIT |
+| Multiple        | -a '{connections},{sessions}' -w 10 -c 20                   | '{"connections":"9"},{"sessions":"8"}'                   | OK   |
+| Multiple        | -a '{connections},{sessions}' -w 10 -c 20                   | '{"connections":"9"},{"sessions":"11"}'                  | WARN |
+| Multiple        | -a '{connections},{sessions}' -w 10 -c 20                   | '{"connections":"22"},{"sessions":"12"}'                 | CRIT |
+| Single Nested   | -a '{connections}->{last_5_min}' -w 10 -c 20                | '{"connections":{"last_5_min":"5"}}'                     | OK   |
+| Single Nested   | -a '{connections}->{last_5_min}' -w 10 -c 20                | '{"connections":{"last_5_min":"30"}}'                    | CRIT |
+| Multiple Nested | -a '{load}->{last_5_min},{load}->{last_1_min}' -w 3 -c 4    | '{"load":{"last_5_min":"0.5"},{"last_1_min":"1.0"}}'     | OK   |
+| Multiple Nested | -a '{load}->{last_5_min},{load}->{last_1_min}' -w 3 -c 4    | '{"load":{"last_5_min":"0.5"},{"last_1_min":"5.0"}}'     | CRIT |
+
+### Check a string/integer value with array of valid values
+COMMAND BASE: `./check_json.pl -u URL <COMMAND SUFFIX>`
+| TYPE            | COMMAND SUFFIX                                                   | URL_RESPONSE                                        | RES  |
+| --------------- | ---------------------------------------------------------------- | --------------------------------------------------- | ---- |
+| Single          | -a '{status}' -n "ok" -w "init;warn" -c "err"                    | '{"status":"ok"}'                                   | OK   |
+| Single          | -a '{status}' -n "ok" -w "init;warn" -c "err"                    | '{"status":"init"}'                                 | WARN |
+| Single          | -a '{status}' -n "ok" -w "init;warn" -c "err"                    | '{"status":"warn"}'                                 | WARN |
+| Single          | -a '{status}' -n "ok" -w "init;warn" -c "err"                    | '{"status":"err"}'                                  | CRIT |
+| Multiple        | -a '{status},{patches}' -n "ok" -w "warn;available" -c "err;sec" | '{{"status":"ok"},{"patches":"ok"}}'                | OK   |
+| Multiple        | -a '{status},{patches}' -n "ok" -w "warn;available" -c "err;sec" | '{{"status":"ok"},{"patches":"available"}}          | WARN |
+| Multiple        | -a '{status},{patches}' -n "ok" -w "warn;available" -c "err;sec" | '{{"status":"warn"},{"patches":"ok"}}'              | WARN |
+| Multiple        | -a '{status},{patches}' -n "ok" -w "warn;available" -c "err;sec" | '{{"status":"ok"},{"patches":"sec"}}'               | CRIT |
+| Multiple        | -a '{status},{patches}' -n "ok" -w "warn;available" -c "err;sec" | '{{"status":"err"},{"patches":"available"}}'        | CRIT |
+| Single Nested   | -a '{status}->{patches}' -n "ok" -w "available" -c "sec"         | '{"status":{"patches":"ok"}}'                       | OK   |
+| Single Nested   | -a '{status}->{patches}' -n "ok" -w "available" -c "sec"         | '{"status":{"patches":"available"}}'                | WARN |
+| Single Nested   | -a '{status}->{patches}' -n "ok" -w "available" -c "sec"         | '{"status":{"patches":"sec"}}'                      | CRIT |
+| Multiple Nested | -a '{srv}->{www},{srv}->{mail}' -n "ok" -w "warn" -c "err"       | '{"srv":{"www":"ok"},{"mail":"ok"}}'                | OK   |
+| Multiple Nested | -a '{srv}->{www},{srv}->{mail}' -n "ok" -w "warn" -c "err"       | '{"srv":{"www":"ok"},{"mail":"err"}}'               | CRIT |
+| Multiple Nested | -a '{srv}->{www},{srv}->{mail}' -n "ok" -w "warn" -c "err"       | '{"srv":{"www":"warn"},{"mail":"ok"}}'              | WARN |
+
+### Check a string/integer value with array of valid values and thresholds
+_The threshold of a value is only calculated if it is not equal to any valid value of the other kinds (normal and/or warning and/or critical)_
+_The threshold definition of a result (normal/warning/critical) must be the first in an array of valid values_
+COMMAND BASE: `./check_json.pl -u URL <COMMAND SUFFIX>`
+| TYPE            | COMMAND SUFFIX                                                   | URL_RESPONSE                                        | RES  |
+| --------------- | ---------------------------------------------------------------- | --------------------------------------------------- | ---- |
+| Single          | -a '{updates}' -n "ok" -w "5" -c "10"                            | '{"updates":"ok"}'                                  | OK   |
+| Single          | -a '{updates}' -n "ok" -w "5" -c "10"                            | '{"updates":"0"}'                                   | OK   |
+| Single          | -a '{updates}' -n "ok" -w "5" -c "10"                            | '{"updates":"3"}'                                   | OK   |
+| Single          | -a '{updates}' -n "ok" -w "5" -c "10"                            | '{"updates":"6"}'                                   | WARN |
+| Single          | -a '{updates}' -n "ok" -w "5" -c "10"                            | '{"updates":"6"}'                                   | CRIT |
+| Single          | -a '{updates}' -n "ok" -w "5" -c "10;err"                        | '{"updates":"err"}'                                 | CRIT |
+**Other types also possible but redacted to short the readme, see above**
+
+##Other Examples
 
 ### Date Example
 Using divisor 3600 allows to set warning und critical in the perspective of hours.
@@ -39,7 +115,7 @@ Result:
 Check JSON status API OK - modifiedAt: 2021-08-31T13:47:07.341Z
 ```
 
-#### Example with several checks in one:
+### Example with several checks in one:
 ```
 ./check_json.pl -u https://some.thing/event -a "{items}[0]->{modifiedAt},{'pagination:page'}->{totalCount}" -w 24,10: -c 48,1: -d 3600 --isdate 1,0 -o "{items}[0]->{modifiedAt},{'pagination:page'}->{totalCount}"
 ```
@@ -106,6 +182,7 @@ object CheckCommand "check-json" {
     "-d" = "$json_divisor$"
     "-w" = "$json_warning$"
     "-c" = "$json_critical$"
+    "-n" = "$json_normal$"
     "-e" = "$json_expect$"
 
     "-p" = "$json_perfvars$"
