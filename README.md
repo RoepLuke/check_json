@@ -101,6 +101,7 @@ COMMAND BASE: `./check_json.pl -u URL <COMMAND SUFFIX>`
 | Single          | -a '{updates}' -n "ok" -w "5" -c "10"                            | '{"updates":"6"}'                                   | WARN |
 | Single          | -a '{updates}' -n "ok" -w "5" -c "10"                            | '{"updates":"6"}'                                   | CRIT |
 | Single          | -a '{updates}' -n "ok" -w "5" -c "10;err"                        | '{"updates":"err"}'                                 | CRIT |
+
 **Other types also possible but redacted to short the readme, see above**
 
 ##Other Examples
