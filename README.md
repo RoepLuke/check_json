@@ -90,8 +90,9 @@ COMMAND BASE: `./check_json.pl -u URL <COMMAND SUFFIX>`
 | Multiple Nested | -a '{srv}->{www},{srv}->{mail}' -n "ok" -w "warn" -c "err"       | '{"srv":{"www":"warn"},{"mail":"ok"}}'              | WARN |
 
 ### Check a string/integer value with array of valid values and thresholds
-_The threshold of a value is only calculated if it is not equal to any valid value of the other kinds (normal and/or warning and/or critical)_
-_The threshold definition of a result (normal/warning/critical) must be the first in an array of valid values_
+_The threshold of a value is only calculated if it is not equal to any valid value of the other kinds (normal and/or warning and/or critical)._
+_The threshold definition of a result (normal/warning/critical) must be the first in an array of valid values._
+
 COMMAND BASE: `./check_json.pl -u URL <COMMAND SUFFIX>`
 | TYPE            | COMMAND SUFFIX                                                   | URL_RESPONSE                                        | RES  |
 | --------------- | ---------------------------------------------------------------- | --------------------------------------------------- | ---- |
@@ -102,7 +103,7 @@ COMMAND BASE: `./check_json.pl -u URL <COMMAND SUFFIX>`
 | Single          | -a '{updates}' -n "ok" -w "5" -c "10"                            | '{"updates":"6"}'                                   | CRIT |
 | Single          | -a '{updates}' -n "ok" -w "5" -c "10;err"                        | '{"updates":"err"}'                                 | CRIT |
 
-**Other types also possible but redacted to short the readme, see above**
+The other types are also possible but redacted to short the readme, see above
 
 ## Other Examples
 
