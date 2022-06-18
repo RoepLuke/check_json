@@ -104,7 +104,7 @@ COMMAND BASE: `./check_json.pl -u URL <COMMAND SUFFIX>`
 
 **Other types also possible but redacted to short the readme, see above**
 
-##Other Examples
+## Other Examples
 
 ### Date Example
 Using divisor 3600 allows to set warning und critical in the perspective of hours.
