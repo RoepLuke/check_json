@@ -143,7 +143,7 @@ $ua->env_proxy;
 $ua->agent('check_json/0.5');
 $ua->default_header('Accept' => 'application/json');
 if (defined($np->opts->hattrib)) {
-$ua->default_header($np->opts->hattrib => $np->opts->hcon);
+    $ua->default_header($np->opts->hattrib => $np->opts->hcon);
 }
 $ua->protocols_allowed( [ 'http', 'https'] );
 $ua->parse_head(0);
@@ -221,10 +221,10 @@ foreach my $attribute (sort keys %attributes){
 
     if ($attributes{$attribute}{'divisor'}) {
         $check_value = $check_value/$attributes{$attribute}{'divisor'};
-}
+    }
 
-if (defined $np->opts->expect && $np->opts->expect ne $check_value) {
-    $np->nagios_exit(CRITICAL, "Expected value (" . $np->opts->expect . ") not found. Actual: " . $check_value);
+    if (defined $np->opts->expect && $np->opts->expect ne $check_value) {
+        $np->nagios_exit(CRITICAL, "Expected value (" . $np->opts->expect . ") not found. Actual: " . $check_value);
     }
 
     if ( $check_value eq "true" or $check_value eq "false" ) {
