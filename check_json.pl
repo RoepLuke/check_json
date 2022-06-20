@@ -11,7 +11,7 @@ use DateTime::Format::ISO8601;
 
 my $np = Monitoring::Plugin->new(
     usage => "Usage: %s -u|--url <http://user:pass\@host:port/url> -a|--attributes <attributes> "
-    . "[ -c|--critical <thresholds> ] [ -w|--warning <thresholds> ] "
+    . "[ -c|--critical <thresholds / array of valid values delimited by ; as STRING> ] [ -w|--warning <thresholds / array of valid values delimited by ; as STRING> ] [ -n|--normal <array of valid values delimited by ; as STRING> ] "
     . "[ -e|--expect <value> ] "
     . "[ -p|--perfvars <fields> ] "
     . "[ -o|--outputvars <fields> ] "
@@ -25,7 +25,7 @@ my $np = Monitoring::Plugin->new(
     . "[ -A|--hattrib <value> ] "
     . "[ -C|--hcon <value> ] "
     . "[ -h|--help ] ",
-    version => '0.51',
+    version => '0.52',
     blurb   => 'Nagios plugin to check JSON attributes via http(s)',
     extra   => "\nExample: \n"
     . "check_json.pl --url http://192.168.5.10:9332/local_stats --attributes '{shares}->{dead}' "
@@ -57,16 +57,21 @@ $np->add_arg(
 
 $np->add_arg(
     spec => 'warning|w=s',
-    help => '-w, --warning INTEGER:INTEGER . See '
+    help => '-w, --warning <INTEGER:INTEGER / Array of valid values delimited by ; as STRING>  . See '
     . 'http://nagiosplug.sourceforge.net/developer-guidelines.html#THRESHOLDFORMAT '
     . 'for the threshold format. ',
 );
 
 $np->add_arg(
     spec => 'critical|c=s',
-    help => '-c, --critical INTEGER:INTEGER . See '
+    help => '-c, --critical <NTEGER:INTEGER / Array of valid values delimited by ; as STRING>  . See '
     . 'http://nagiosplug.sourceforge.net/developer-guidelines.html#THRESHOLDFORMAT '
     . 'for the threshold format. ',
+);
+
+$np->add_arg(
+    spec => 'normal|n=s',
+    help => '-n, --normal <STRING / Array of valid values delimited by ; as STRING>'
 );
 
 $np->add_arg(
@@ -186,11 +191,14 @@ my $json_response = decode_json($response->content);
 if ($np->opts->verbose) { (print Dumper ($json_response))};
 
 my @attributes = split(',', $np->opts->attributes);
+my @normal = $np->opts->normal ? split(',',$np->opts->normal) : () ;
 my @warning = $np->opts->warning ? split(',',$np->opts->warning) : () ;
 my @critical = $np->opts->critical ? split(',',$np->opts->critical) : () ;
 my @divisor = $np->opts->divisor ? split(',',$np->opts->divisor) : () ;
 my @isdate = $np->opts->isdate ? split(',',$np->opts->isdate) : ();
-my %attributes = map { $attributes[$_] => { warning => $warning[$_] , critical => $critical[$_], divisor => ($divisor[$_] or 0), isdate => ($isdate[$_] or 0) } } 0..$#attributes;
+my %attributes = map { $attributes[$_] => { normal => @normal, warning => @warning, critical => @critical, divisor => ($divisor[$_] or 0), isdate => ($isdate[$_] or 0) } } 0..$#attributes;
+
+if ($np->opts->verbose) { (print Dumper (%attributes))};
 
 my %check_value;
 my $check_value;
@@ -255,11 +263,85 @@ foreach my $attribute (sort keys %attributes){
     }
     else
     {
-       $resultTmp = $np->check_threshold(
+       if ( $attributes{$attribute}{'critical'} =~ m/;/ ) {
+         if ($np->opts->verbose) { (print "Interpreted critical as array\n") };
+         my @validvalues = split(';', $attributes{$attribute}{'critical'});
+         foreach my $value ( @validvalues ) {
+           if ($np->opts->verbose) { (print "$check_value = $value ?") };
+           if ( $check_value eq $value ) {
+             $resultTmp = 2;
+             if ($np->opts->verbose) { (print " Yes!\n") };
+           } else {
+             if ($np->opts->verbose) { (print " No!\n") };
+           }
+         }
+       } else {
+         if ($np->opts->verbose) { (print "Interpreted critical as string\n") };
+         if ($np->opts->verbose) { (print "$check_value = $attributes{$attribute}{'critical'} ?") };
+         if ($attributes{$attribute}{'critical'} eq $check_value) {
+           $resultTmp = 2;
+           if ($np->opts->verbose) { (print " Yes!\n") };
+         } else {
+           if ($np->opts->verbose) { (print " No!\n") };
+         }
+       }
+           
+       if ( $attributes{$attribute}{'warning'} =~ m/;/ ) {
+         if ($np->opts->verbose) { (print "Interpreted warning as array\n") };
+         my @validvalues = split(';', $attributes{$attribute}{'warning'});
+         foreach my $value ( @validvalues ) {
+           if ($np->opts->verbose) { (print "$check_value = $value ?") };
+           if ( $check_value eq $value ) {
+             $resultTmp = 1;
+             if ($np->opts->verbose) { (print " Yes!\n") };
+           } else {
+             if ($np->opts->verbose) { (print " No!\n") };
+           }
+         }
+       } else {
+         if ($np->opts->verbose) { (print "Interpreted warning as string\n") };
+         if ($np->opts->verbose) { (print "$check_value = $attributes{$attribute}{'warning'} ?") };
+         if ($attributes{$attribute}{'warning'} eq $check_value) {
+           $resultTmp = 1;
+           if ($np->opts->verbose) { (print " Yes!\n") };
+         } else {
+           if ($np->opts->verbose) { (print " No!\n") };
+         }
+       }
+
+
+       if ( $attributes{$attribute}{'normal'} =~ m/;/ ) {
+         if ($np->opts->verbose) { (print "Interpreted normal as array\n") };
+         my @validvalues = split(';', $attributes{$attribute}{'normal'});
+         foreach my $value ( @validvalues ) {
+           if ($np->opts->verbose) { (print "$check_value = $value ?") };
+           if ($check_value eq $value) {
+             $resultTmp = 0;
+             if ($np->opts->verbose) { (print " Yes!\n") };
+           } else {
+             if ($np->opts->verbose) { (print " No!\n") };
+           }
+         }
+       } else {
+         if ($np->opts->verbose) { (print "Interpreted normal as string\n") };
+         if ($np->opts->verbose) { (print "$check_value = $attributes{$attribute}{'normal'} ?") };
+         if ($attributes{$attribute}{'normal'} eq $check_value) {
+           $resultTmp = 0;
+           if ($np->opts->verbose) { (print " Yes!\n") };
+         } else {
+           if ($np->opts->verbose) { (print " No!\n") };
+         }
+       }
+
+
+       if ($np->opts->verbose) { (print "ResultTmp is $resultTmp\n") };
+       if ($resultTmp == -1) {
+         $resultTmp = $np->check_threshold(
            check => $check_value,
            warning => $attributes{$attribute}{'warning'},
            critical => $attributes{$attribute}{'critical'}
-       );
+         );
+       }
      }
     $result = $resultTmp if $result < $resultTmp;
 
