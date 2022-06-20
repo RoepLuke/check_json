@@ -79,6 +79,18 @@ $np->add_arg(
     help => '-e, --expect expected value to see for attribute.',
 );
 
+#$np->add_arg(
+#    spec => 'expect-result-found=i',
+#    help => '--expect-result-found expected return code when value given by --expect is found'
+#    . 'Either UNKNOWN (-1) or OK (0) or WARNING (1) or CRITICAL (2). Default is OK'
+#);
+
+#$np->add_arg(
+#    spec => 'expect-result-notfound=i',
+#    help => '--expect-result_notfound expected return code when valu given by --expect is not found'
+#    . 'Either UNKNOWN (-1) or OK (0) or WARNING (1) or CRITICAL (2) .Default is CRITICAL'
+#);
+
 $np->add_arg(
     spec => 'perfvars|p=s',
     help => "-p, --perfvars eg. '* or {shares}->{dead},{shares}->{live}'\n   "
@@ -189,11 +201,19 @@ if ($response->is_success) {
 ## Parse JSON
 my $json_response = decode_json($response->content);
 if ($np->opts->verbose) { (print Dumper ($json_response))};
-
+my @normal;
+my @warning;
+my @critical;
 my @attributes = split(',', $np->opts->attributes);
-my @normal = $np->opts->normal ? split(',',$np->opts->normal) : () ;
-my @warning = $np->opts->warning ? split(',',$np->opts->warning) : () ;
-my @critical = $np->opts->critical ? split(',',$np->opts->critical) : () ;
+if (!defined $np->opts->expect) {
+  @normal = $np->opts->normal ? split(',',$np->opts->normal) : () ;
+  @warning = $np->opts->warning ? split(',',$np->opts->warning) : () ;
+  @critical = $np->opts->critical ? split(',',$np->opts->critical) : () ;
+} else {
+  @normal = ('');
+  @warning = ('');
+  @critical = ('');
+}
 my @divisor = $np->opts->divisor ? split(',',$np->opts->divisor) : () ;
 my @isdate = $np->opts->isdate ? split(',',$np->opts->isdate) : ();
 my %attributes = map { $attributes[$_] => { normal => @normal, warning => @warning, critical => @critical, divisor => ($divisor[$_] or 0), isdate => ($isdate[$_] or 0) } } 0..$#attributes;
@@ -206,7 +226,7 @@ my $result = -1;
 my $resultTmp;
 
 ##Result List
-# -1 = unkown / not yet solved
+# -1 = UNKNOWN
 # 0 = OK
 # 1 = WARNING
 # 2 = CRITICAL
@@ -239,9 +259,21 @@ foreach my $attribute (sort keys %attributes){
 
     if (defined $np->opts->expect) {
         if ($np->opts->expect ne $check_value) {
-            $np->nagios_exit(CRITICAL, "Expected value (" . $np->opts->expect . ") not found. Actual: " . $check_value);
+#            $np->nagios_exit(CRITICAL, "Expected value (" . $np->opts->expect . ") not found. Actual: " . $check_value);
+#            if (defined $np->opts->expect-result-notfound && $np->opts->expect-result-notfound lt 3 && $np->opts->expect-result-notfound gt -2) {
+#                $resultTmp = $np->opts->expect-result-notfound;
+#            } else {
+                $resultTmp = 2;
+#            }
+        } else {
+#            $np->nagios_exit(OK, '');
+#            if (defined $np->opts->expect-result-found && $np->opts->expect-result-found lt 3 && $np->opts->expect-result-found gt -2) {
+#                $resultTmp = $np->opts->expect-result-found;
+#            } else {
+                $resultTmp = 0;
+#            }
         }
-    
+    } else {
         if ( $check_value eq "true" or $check_value eq "false" ) {
             if ( $check_value eq "true") {
                 $resultTmp = 0;
@@ -264,7 +296,7 @@ foreach my $attribute (sort keys %attributes){
                 }
             }
         } else {
-            if ( defined $attributes{$attribute}{'critical'} ) {
+            if ( $attributes{$attribute}{'critical'} ne '' ) {
                 if ( $attributes{$attribute}{'critical'} =~ m/;/ ) {
                     if ($np->opts->verbose) { (print "Interpreted critical as array\n") };
                     my @validvalues = split(';', $attributes{$attribute}{'critical'});
@@ -288,7 +320,7 @@ foreach my $attribute (sort keys %attributes){
                     }
                 }
             }
-            if ( defined $attributes{$attribute}{'warning'} ) {
+            if ( $attributes{$attribute}{'warning'} ne '' ) {
                 if ( $attributes{$attribute}{'warning'} =~ m/;/ ) {
                     if ($np->opts->verbose) { (print "Interpreted warning as array\n") };
                     my @validvalues = split(';', $attributes{$attribute}{'warning'});
@@ -312,7 +344,7 @@ foreach my $attribute (sort keys %attributes){
                     }
                 }
             }
-            if ( defined $attributes{$attribute}{'normal'} ) {
+            if ( $attributes{$attribute}{'normal'} ne '' ) {
                 if ( $attributes{$attribute}{'normal'} =~ m/;/ ) {
                     if ($np->opts->verbose) { (print "Interpreted normal as array\n") };
                     my @validvalues = split(';', $attributes{$attribute}{'normal'});
@@ -338,7 +370,7 @@ foreach my $attribute (sort keys %attributes){
             }
 
             if ($np->opts->verbose) { (print "ResultTmp is $resultTmp\n") };
-            if ($resultTmp == -1 && defined $attributes{$attribute}{'warning'} && defined $attributes{$attribute}{'critical'}) {
+            if ($resultTmp == -1 && $attributes{$attribute}{'warning'} ne '' && $attributes{$attribute}{'critical'} ne '') {
                 $resultTmp = $np->check_threshold(
                     check => $check_value,
                     warning => $attributes{$attribute}{'warning'},
@@ -346,8 +378,8 @@ foreach my $attribute (sort keys %attributes){
                 );
             }
         }
-        $result = $resultTmp if $result < $resultTmp;
     }
+    $result = $resultTmp if $result < $resultTmp;
     $attributes{$attribute}{'check_value'}=$check_value;
 }
 
@@ -397,6 +429,12 @@ if ($np->opts->outputvars) {
         eval $output_value_str;
         push(@statusmsg, "$label: $output_value");
     }
+}
+
+if ($np->opts->verbose) { 
+    print "return code is $result\n";
+    print "Status message is @statusmsg\n";
+
 }
 
 $np->nagios_exit(
