@@ -31,7 +31,7 @@ my $np = Monitoring::Plugin->new(
     . "check_json.pl --url http://192.168.5.10:9332/local_stats --attributes '{shares}->{dead}' "
     . "--warning :5 --critical :10 --perfvars '{shares}->{dead},{shares}->{live}' "
     . "--outputvars '{status_message}' -b <api_token>",
-    url     => 'https://github.com/c-kr/check_json',
+    url     => 'https://github.com/RoepLuke/check_json/',
     plugin  => 'check_json',
     timeout => 15,
     shortname => "Check JSON status API",
