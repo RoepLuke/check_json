@@ -146,7 +146,7 @@ COMMAND BASE: `./check_json.pl -u URL <COMMAND SUFFIX>`
 | Single  | -a '{updates}' -n "ok" -w "5" -c "10"      | {"updates":"6"}    | CRIT |
 | Single  | -a '{updates}' -n "ok" -w "5" -c "10;err"  | {"updates":"err"}  | CRIT |
 
-The other types are also possible but redacted to short the readme, see above
+The other types (multiple, single nested, multiple nested) are also possible but redacted to short the readme, see above
 
 ## Other Examples
 
