@@ -8,9 +8,12 @@ This Plugin is a fork of the existing JSON Plugin from https://github.com/c-kr/c
 This particular fork allows to check for dates in the JSON. The date is compared against the current time and the difference in seconds is used as attribute.
 Also perfvars and outputvars is fixed for more easy access, just as it was implemented for attributes.
 
-**This fork will also (when implemented) allow you to specify an array of valid values (int or String) for the critical / warning / normal values. This will change the interpretation of --critical and --warning to arrays of valid values (values delimited by ';'). Single values can still be given as before and are interpreted as before. A new parameter will be added (--normal) which will work the same as --warning or --critical but won't be used for tresholds.**
+**This fork also allows you to specify an array of valid values (int or String) for the critical / warning / normal values. This will change the interpretation of --critical and --warning to arrays of valid values (values delimited by ';'). Single values can still be given as before and are interpreted as before. A new parameter will be added (--normal) which will work the same as --warning or --critical but won't be used for tresholds.**
+
+**Please note:** You should not use --expect and --normal/--warning/--critical together! Expect is a binary comparison (result is the same = OK / result in not the same = CRITICAL) and --normal/--warning/--critical can be used with arrays of valid values for each result (normal/warning/critical) and/or with integer tresholds (see how under 'Input->Output Examples').
 
 ## Usage: 
+### General
 ```
 check_json 
     -u|--url <URL> 
@@ -33,8 +36,48 @@ check_json
     [--isdate] 
     [ -h|--help ]
 ```
+### When using --expect
+```
+check_json
+    -u|--url <URL> 
+    -a|--attribute <attribute> 
+    -e|--expect <value> 
+    [ -p|--perfvars <fields> ] 
+    [ -o|--outputvars <fields> ] 
+    [ -t|--timeout <timeout> ] 
+    [ -d|--divisor <divisor> ] 
+    [ -m|--metadata ] 
+    [ -T|--contenttype <content-type> ] 
+    [ --ignoressl ] 
+    [ -x|--xauth <X-Auth-Token> ] 
+    [ -b|--bearer <Bearer-Token> ] 
+    [ -A|--hattrib <value> ] 
+    [ -C|--hcon <value> ] 
+    [--isdate] 
+```
+### When using --critical and --warning (and optionally --normal)
+```
+check_json 
+    -u|--url <URL> 
+    -a|--attribute <attribute> 
+    -c|--critical <integer threshold/array of valid values> 
+    -w|--warning <integer threshold/array of valid values> 
+    ( -n|--normal <array of valid values> ) 
+    [ -p|--perfvars <fields> ] 
+    [ -o|--outputvars <fields> ] 
+    [ -t|--timeout <timeout> ] 
+    [ -d|--divisor <divisor> ] 
+    [ -m|--metadata ] 
+    [ -T|--contenttype <content-type> ] 
+    [ --ignoressl ] 
+    [ -x|--xauth <X-Auth-Token> ] 
+    [ -b|--bearer <Bearer-Token> ] 
+    [ -A|--hattrib <value> ] 
+    [ -C|--hcon <value> ] 
+    [--isdate] 
+```
 
-## Valid Argument combinations:
+## Input->Output Examples
 
 ### Check a string/integer value with --expect
 COMMAND BASE: `./check_json.pl -u URL <COMMAND SUFFIX>` 
@@ -150,15 +193,13 @@ Home Assistant Check Entity Status
 ./check_json.pl --url http://hass.lan:8123/api/states/sensor.living_room_temperature --attribute '{state}' --warning 75 --critical 85 --bearer LONG_LIVED_ACCESS_TOKEN
 ```
 
-Requirements
-============
+## Requirements
 
 Perl JSON package
 
 * Debian / Ubuntu : libjson-perl libmonitoring-plugin-perl libwww-perl libdatetime-format-iso8601-perl
 
-Icinga2 Integration
-===================
+## Icinga2 Integration
 
 Example CheckCommand Definition:
 ```
