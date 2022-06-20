@@ -10,7 +10,7 @@ Also perfvars and outputvars is fixed for more easy access, just as it was imple
 
 **This fork also allows you to specify an array of valid values (int or String) for the critical / warning / normal values. This will change the interpretation of --critical and --warning to arrays of valid values (values delimited by ';'). Single values can still be given as before and are interpreted as before. A new parameter will be added (--normal) which will work the same as --warning or --critical but won't be used for tresholds.**
 
-**Please note:** You should not use --expect and --normal/--warning/--critical together! Expect is a binary comparison (result is the same = OK / result in not the same = CRITICAL) and --normal/--warning/--critical can be used with arrays of valid values for each result (normal/warning/critical) and/or with integer tresholds (see how under 'Input->Output Examples').
+**Please note:** You should not use --expect and --normal/--warning/--critical together! Expect is a binary comparison (result is the same = OK / result in not the same = CRITICAL) and --normal/--warning/--critical can be used with arrays of (or single) valid values for each result (normal/warning/critical) and/or with integer tresholds (see more and how under 'Input->Output Examples').
 
 ## Usage: 
 ### General
