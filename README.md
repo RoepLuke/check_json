@@ -38,70 +38,70 @@ check_json
 
 ### Check a string/integer value with --expect
 COMMAND BASE: `./check_json.pl -u URL <COMMAND SUFFIX>` 
-| TYPE            | COMMAND SUFFIX                                            | URL_RESPONSE                                             | RES  |
-| --------------- | --------------------------------------------------------- | -------------------------------------------------------- | ---- |
-| Single          | -a '{status}' --expect "ok"                               | '{"status":"ok"}'                                        | OK   |
-| Single          | -a '{errors}' --expect "0"                                | '{"errors":"0"}'                                         | OK   |
-| Multiple        | -a '{status},{patched}' --expect "ok"                     | '{{"status":"ok"},{"patched":"ok"}'                      | OK   |
-| Single Nested   | -a '{status}->{server}' --expect "ok"                     | '{"status":{"server":"ok"}}'                             | OK   |
-| Multiple Nested | -a '{status}->{server},{status}->{gateway}' --expect "ok" | '{"status":{"server":"ok"},{"gateway":"ok"}}'            | OK   |
-| Single          | -a '{status}' --expect "ok"                               | '{"status":"anything else"}'                             | CRIT |
-| Multiple        | -a '{status},{patched}' --expect "ok"                     | '{{"status":"anything else"},{"patched":"ok"}'           | CRIT |
-| Multiple        | -a '{status},{errors}' --expect "ok"                      | '{{"status":"ok"},{"errors":"0"}'                        | CRIT |
-| Multiple        | -a '{status},{patched}' --expect "ok"                     | '{{"status":"ok"},{"patched":"anything else"}'           | CRIT |
-| Single Nested   | -a '{status}->{server}' --expect "ok"                     | '{"status":{"server":"anything else"}}'                  | CRIT |
-| Multiple Nested | -a '{status}->{server},{status}->{gateway}' --expect "ok" | '{"status":{"server":"anything else"},{"gateway":"ok"}}' | CRIT |
-| Multiple Nested | -a '{status}->{server},{status}->{gateway}' --expect "ok" | '{"status":{"server":"ok"},{"gateway":"anything else"}}' | CRIT |
+| TYPE            | COMMAND SUFFIX                                            | URL_RESPONSE                                           | RES  |
+| --------------- | --------------------------------------------------------- | ------------------------------------------------------ | ---- |
+| Single          | -a '{status}' --expect "ok"                               | {"status":"ok"}                                        | OK   |
+| Single          | -a '{errors}' --expect "0"                                | {"errors":"0"}                                         | OK   |
+| Multiple        | -a '{status},{patched}' --expect "ok"                     | {{"status":"ok"},{"patched":"ok"}                      | OK   |
+| Single Nested   | -a '{status}->{server}' --expect "ok"                     | {"status":{"server":"ok"}}                             | OK   |
+| Multiple Nested | -a '{status}->{server},{status}->{gateway}' --expect "ok" | {"status":{"server":"ok"},{"gateway":"ok"}}            | OK   |
+| Single          | -a '{status}' --expect "ok"                               | {"status":"anything else"}                             | CRIT |
+| Multiple        | -a '{status},{patched}' --expect "ok"                     | {{"status":"anything else"},{"patched":"ok"}           | CRIT |
+| Multiple        | -a '{status},{errors}' --expect "ok"                      | {{"status":"ok"},{"errors":"0"}                        | CRIT |
+| Multiple        | -a '{status},{patched}' --expect "ok"                     | {{"status":"ok"},{"patched":"anything else"}           | CRIT |
+| Single Nested   | -a '{status}->{server}' --expect "ok"                     | {"status":{"server":"anything else"}}                  | CRIT |
+| Multiple Nested | -a '{status}->{server},{status}->{gateway}' --expect "ok" | {"status":{"server":"anything else"},{"gateway":"ok"}} | CRIT |
+| Multiple Nested | -a '{status}->{server},{status}->{gateway}' --expect "ok" | {"status":{"server":"ok"},{"gateway":"anything else"}} | CRIT |
 
 ### Check a integer value with thresholds
 COMMAND BASE: `./check_json.pl -u URL <COMMAND SUFFIX>`
-| TYPE            | COMMAND SUFFIX                                              | URL_RESPONSE                                             | RES  |
-| --------------- | ----------------------------------------------------------- | -------------------------------------------------------- | ---- |
-| Single          | -a '{connections}' --warning 10 --critical 20               | '{"connections":"9"}'                                    | OK   |
-| Single          | -a '{connections}' --warning 10 --critical 20               | '{"connections":"10"}'                                   | WARN |
-| Single          | -a '{connections}' --warning 10 --critical 20               | '{"connections":"19"}'                                   | WARN |
-| Single          | -a '{connections}' --warning 10 --critical 20               | '{"connections":"20"}'                                   | CRIT |
-| Multiple        | -a '{connections},{sessions}' -w 10 -c 20                   | '{"connections":"9"},{"sessions":"8"}'                   | OK   |
-| Multiple        | -a '{connections},{sessions}' -w 10 -c 20                   | '{"connections":"9"},{"sessions":"11"}'                  | WARN |
-| Multiple        | -a '{connections},{sessions}' -w 10 -c 20                   | '{"connections":"22"},{"sessions":"12"}'                 | CRIT |
-| Single Nested   | -a '{connections}->{last_5_min}' -w 10 -c 20                | '{"connections":{"last_5_min":"5"}}'                     | OK   |
-| Single Nested   | -a '{connections}->{last_5_min}' -w 10 -c 20                | '{"connections":{"last_5_min":"30"}}'                    | CRIT |
-| Multiple Nested | -a '{load}->{last_5_min},{load}->{last_1_min}' -w 3 -c 4    | '{"load":{"last_5_min":"0.5"},{"last_1_min":"1.0"}}'     | OK   |
-| Multiple Nested | -a '{load}->{last_5_min},{load}->{last_1_min}' -w 3 -c 4    | '{"load":{"last_5_min":"0.5"},{"last_1_min":"5.0"}}'     | CRIT |
+| TYPE            | COMMAND SUFFIX                                              | URL_RESPONSE                                           | RES  |
+| --------------- | ----------------------------------------------------------- | ------------------------------------------------------ | ---- |
+| Single          | -a '{connections}' --warning 10 --critical 20               | {"connections":"9"}                                    | OK   |
+| Single          | -a '{connections}' --warning 10 --critical 20               | {"connections":"10"}                                   | WARN |
+| Single          | -a '{connections}' --warning 10 --critical 20               | {"connections":"19"}                                   | WARN |
+| Single          | -a '{connections}' --warning 10 --critical 20               | {"connections":"20"}                                   | CRIT |
+| Multiple        | -a '{connections},{sessions}' -w 10 -c 20                   | {"connections":"9"},{"sessions":"8"}                   | OK   |
+| Multiple        | -a '{connections},{sessions}' -w 10 -c 20                   | {"connections":"9"},{"sessions":"11"}                  | WARN |
+| Multiple        | -a '{connections},{sessions}' -w 10 -c 20                   | {"connections":"22"},{"sessions":"12"}                 | CRIT |
+| Single Nested   | -a '{connections}->{last_5_min}' -w 10 -c 20                | {"connections":{"last_5_min":"5"}}                     | OK   |
+| Single Nested   | -a '{connections}->{last_5_min}' -w 10 -c 20                | {"connections":{"last_5_min":"30"}}                    | CRIT |
+| Multiple Nested | -a '{load}->{last_5_min},{load}->{last_1_min}' -w 3 -c 4    | {"load":{"last_5_min":"0.5"},{"last_1_min":"1.0"}}     | OK   |
+| Multiple Nested | -a '{load}->{last_5_min},{load}->{last_1_min}' -w 3 -c 4    | {"load":{"last_5_min":"0.5"},{"last_1_min":"5.0"}}     | CRIT |
 
 ### Check a string/integer value with array of valid values
 COMMAND BASE: `./check_json.pl -u URL <COMMAND SUFFIX>`
-| TYPE            | COMMAND SUFFIX                                                   | URL_RESPONSE                                        | RES  |
-| --------------- | ---------------------------------------------------------------- | --------------------------------------------------- | ---- |
-| Single          | -a '{status}' -n "ok" -w "init;warn" -c "err"                    | '{"status":"ok"}'                                   | OK   |
-| Single          | -a '{status}' -n "ok" -w "init;warn" -c "err"                    | '{"status":"init"}'                                 | WARN |
-| Single          | -a '{status}' -n "ok" -w "init;warn" -c "err"                    | '{"status":"warn"}'                                 | WARN |
-| Single          | -a '{status}' -n "ok" -w "init;warn" -c "err"                    | '{"status":"err"}'                                  | CRIT |
-| Multiple        | -a '{status},{patches}' -n "ok" -w "warn;available" -c "err;sec" | '{{"status":"ok"},{"patches":"ok"}}'                | OK   |
-| Multiple        | -a '{status},{patches}' -n "ok" -w "warn;available" -c "err;sec" | '{{"status":"ok"},{"patches":"available"}}          | WARN |
-| Multiple        | -a '{status},{patches}' -n "ok" -w "warn;available" -c "err;sec" | '{{"status":"warn"},{"patches":"ok"}}'              | WARN |
-| Multiple        | -a '{status},{patches}' -n "ok" -w "warn;available" -c "err;sec" | '{{"status":"ok"},{"patches":"sec"}}'               | CRIT |
-| Multiple        | -a '{status},{patches}' -n "ok" -w "warn;available" -c "err;sec" | '{{"status":"err"},{"patches":"available"}}'        | CRIT |
-| Single Nested   | -a '{status}->{patches}' -n "ok" -w "available" -c "sec"         | '{"status":{"patches":"ok"}}'                       | OK   |
-| Single Nested   | -a '{status}->{patches}' -n "ok" -w "available" -c "sec"         | '{"status":{"patches":"available"}}'                | WARN |
-| Single Nested   | -a '{status}->{patches}' -n "ok" -w "available" -c "sec"         | '{"status":{"patches":"sec"}}'                      | CRIT |
-| Multiple Nested | -a '{srv}->{www},{srv}->{mail}' -n "ok" -w "warn" -c "err"       | '{"srv":{"www":"ok"},{"mail":"ok"}}'                | OK   |
-| Multiple Nested | -a '{srv}->{www},{srv}->{mail}' -n "ok" -w "warn" -c "err"       | '{"srv":{"www":"ok"},{"mail":"err"}}'               | CRIT |
-| Multiple Nested | -a '{srv}->{www},{srv}->{mail}' -n "ok" -w "warn" -c "err"       | '{"srv":{"www":"warn"},{"mail":"ok"}}'              | WARN |
+| TYPE            | COMMAND SUFFIX                                                   | URL_RESPONSE                                | RES  |
+| --------------- | ---------------------------------------------------------------- | ------------------------------------------- | ---- |
+| Single          | -a '{status}' -n "ok" -w "init;warn" -c "err"                    | {"status":"ok"}                             | OK   |
+| Single          | -a '{status}' -n "ok" -w "init;warn" -c "err"                    | {"status":"init"}                           | WARN |
+| Single          | -a '{status}' -n "ok" -w "init;warn" -c "err"                    | {"status":"warn"}                           | WARN |
+| Single          | -a '{status}' -n "ok" -w "init;warn" -c "err"                    | {"status":"err"}                            | CRIT |
+| Multiple        | -a '{status},{patches}' -n "ok" -w "warn;available" -c "err;sec" | {{"status":"ok"},{"patches":"ok"}}          | OK   |
+| Multiple        | -a '{status},{patches}' -n "ok" -w "warn;available" -c "err;sec" | {{"status":"ok"},{"patches":"available"}}   | WARN |
+| Multiple        | -a '{status},{patches}' -n "ok" -w "warn;available" -c "err;sec" | {{"status":"warn"},{"patches":"ok"}}        | WARN |
+| Multiple        | -a '{status},{patches}' -n "ok" -w "warn;available" -c "err;sec" | {{"status":"ok"},{"patches":"sec"}}         | CRIT |
+| Multiple        | -a '{status},{patches}' -n "ok" -w "warn;available" -c "err;sec" | {{"status":"err"},{"patches":"available"}}  | CRIT |
+| Single Nested   | -a '{status}->{patches}' -n "ok" -w "available" -c "sec"         | {"status":{"patches":"ok"}}                 | OK   |
+| Single Nested   | -a '{status}->{patches}' -n "ok" -w "available" -c "sec"         | {"status":{"patches":"available"}}          | WARN |
+| Single Nested   | -a '{status}->{patches}' -n "ok" -w "available" -c "sec"         | {"status":{"patches":"sec"}}                | CRIT |
+| Multiple Nested | -a '{srv}->{www},{srv}->{mail}' -n "ok" -w "warn" -c "err"       | {"srv":{"www":"ok"},{"mail":"ok"}}          | OK   |
+| Multiple Nested | -a '{srv}->{www},{srv}->{mail}' -n "ok" -w "warn" -c "err"       | {"srv":{"www":"ok"},{"mail":"err"}}         | CRIT |
+| Multiple Nested | -a '{srv}->{www},{srv}->{mail}' -n "ok" -w "warn" -c "err"       | {"srv":{"www":"warn"},{"mail":"ok"}}        | WARN |
 
 ### Check a string/integer value with array of valid values and thresholds
 _The threshold of a value is only calculated if it is not equal to any valid value of the other kinds (normal and/or warning and/or critical)._
 _The threshold definition of a result (normal/warning/critical) must be the first in an array of valid values._
 
 COMMAND BASE: `./check_json.pl -u URL <COMMAND SUFFIX>`
-| TYPE            | COMMAND SUFFIX                                                   | URL_RESPONSE                                        | RES  |
-| --------------- | ---------------------------------------------------------------- | --------------------------------------------------- | ---- |
-| Single          | -a '{updates}' -n "ok" -w "5" -c "10"                            | '{"updates":"ok"}'                                  | OK   |
-| Single          | -a '{updates}' -n "ok" -w "5" -c "10"                            | '{"updates":"0"}'                                   | OK   |
-| Single          | -a '{updates}' -n "ok" -w "5" -c "10"                            | '{"updates":"3"}'                                   | OK   |
-| Single          | -a '{updates}' -n "ok" -w "5" -c "10"                            | '{"updates":"6"}'                                   | WARN |
-| Single          | -a '{updates}' -n "ok" -w "5" -c "10"                            | '{"updates":"6"}'                                   | CRIT |
-| Single          | -a '{updates}' -n "ok" -w "5" -c "10;err"                        | '{"updates":"err"}'                                 | CRIT |
+| TYPE    | COMMAND SUFFIX                             | URL_RESPONSE       | RES  |
+| ------- | ------------------------------------------ | ------------------ | ---- |
+| Single  | -a '{updates}' -n "ok" -w "5" -c "10"      | {"updates":"ok"}   | OK   |
+| Single  | -a '{updates}' -n "ok" -w "5" -c "10"      | {"updates":"0"}    | OK   |
+| Single  | -a '{updates}' -n "ok" -w "5" -c "10"      | {"updates":"3"}    | OK   |
+| Single  | -a '{updates}' -n "ok" -w "5" -c "10"      | {"updates":"6"}    | WARN |
+| Single  | -a '{updates}' -n "ok" -w "5" -c "10"      | {"updates":"6"}    | CRIT |
+| Single  | -a '{updates}' -n "ok" -w "5" -c "10;err"  | {"updates":"err"}  | CRIT |
 
 The other types are also possible but redacted to short the readme, see above
 
