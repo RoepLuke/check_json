@@ -205,6 +205,12 @@ my $check_value;
 my $result = -1;
 my $resultTmp;
 
+##Result List
+# -1 = unkown / not yet solved
+# 0 = OK
+# 1 = WARNING
+# 2 = CRITICAL
+
 foreach my $attribute (sort keys %attributes){
     my $check_value;
     my $check_value_str = '$check_value = $json_response->'.$attribute;
@@ -214,6 +220,13 @@ foreach my $attribute (sort keys %attributes){
 
     if (!defined $check_value) {
         $np->nagios_exit(UNKNOWN, "No value received");
+    }
+
+    # ignore --normal/--warning/--critical when --expect is given
+    if (defined $np->opts->expect) {
+        @normal = ();
+        @warning = ();
+        @critical = ();
     }
 
     # The difference between the given date and now is used as new check_value in seconds
@@ -260,82 +273,83 @@ foreach my $attribute (sort keys %attributes){
               }
            }
        }
-    }
-    else
-    {
-       if ( $attributes{$attribute}{'critical'} =~ m/;/ ) {
-         if ($np->opts->verbose) { (print "Interpreted critical as array\n") };
-         my @validvalues = split(';', $attributes{$attribute}{'critical'});
-         foreach my $value ( @validvalues ) {
-           if ($np->opts->verbose) { (print "$check_value = $value ?") };
-           if ( $check_value eq $value ) {
-             $resultTmp = 2;
-             if ($np->opts->verbose) { (print " Yes!\n") };
-           } else {
-             if ($np->opts->verbose) { (print " No!\n") };
-           }
-         }
-       } else {
-         if ($np->opts->verbose) { (print "Interpreted critical as string\n") };
-         if ($np->opts->verbose) { (print "$check_value = $attributes{$attribute}{'critical'} ?") };
-         if ($attributes{$attribute}{'critical'} eq $check_value) {
-           $resultTmp = 2;
-           if ($np->opts->verbose) { (print " Yes!\n") };
-         } else {
-           if ($np->opts->verbose) { (print " No!\n") };
-         }
-       }
-           
-       if ( $attributes{$attribute}{'warning'} =~ m/;/ ) {
-         if ($np->opts->verbose) { (print "Interpreted warning as array\n") };
-         my @validvalues = split(';', $attributes{$attribute}{'warning'});
-         foreach my $value ( @validvalues ) {
-           if ($np->opts->verbose) { (print "$check_value = $value ?") };
-           if ( $check_value eq $value ) {
-             $resultTmp = 1;
-             if ($np->opts->verbose) { (print " Yes!\n") };
-           } else {
-             if ($np->opts->verbose) { (print " No!\n") };
-           }
-         }
-       } else {
-         if ($np->opts->verbose) { (print "Interpreted warning as string\n") };
-         if ($np->opts->verbose) { (print "$check_value = $attributes{$attribute}{'warning'} ?") };
-         if ($attributes{$attribute}{'warning'} eq $check_value) {
-           $resultTmp = 1;
-           if ($np->opts->verbose) { (print " Yes!\n") };
-         } else {
-           if ($np->opts->verbose) { (print " No!\n") };
-         }
-       }
+    } else {
+      if ( defined $attributes{$attribute}{'critical'} ) {
+        if ( $attributes{$attribute}{'critical'} =~ m/;/ ) {
+          if ($np->opts->verbose) { (print "Interpreted critical as array\n") };
+          my @validvalues = split(';', $attributes{$attribute}{'critical'});
+          foreach my $value ( @validvalues ) {
+            if ($np->opts->verbose) { (print "$check_value = $value ?") };
+            if ( $check_value eq $value ) {
+              $resultTmp = 2;
+              if ($np->opts->verbose) { (print " Yes!\n") };
+            } else {
+              if ($np->opts->verbose) { (print " No!\n") };
+            }
+          }
+        } else {
+          if ($np->opts->verbose) { (print "Interpreted critical as string\n") };
+          if ($np->opts->verbose) { (print "$check_value = $attributes{$attribute}{'critical'} ?") };
+          if ($attributes{$attribute}{'critical'} eq $check_value) {
+            $resultTmp = 2;
+            if ($np->opts->verbose) { (print " Yes!\n") };
+          } else {
+            if ($np->opts->verbose) { (print " No!\n") };
+          }
+        }
+      }
+      if ( defined $attributes{$attribute}{'warning'} ) {
+        if ( $attributes{$attribute}{'warning'} =~ m/;/ ) {
+          if ($np->opts->verbose) { (print "Interpreted warning as array\n") };
+          my @validvalues = split(';', $attributes{$attribute}{'warning'});
+          foreach my $value ( @validvalues ) {
+            if ($np->opts->verbose) { (print "$check_value = $value ?") };
+            if ( $check_value eq $value ) {
+              $resultTmp = 1;
+              if ($np->opts->verbose) { (print " Yes!\n") };
+            } else {
+              if ($np->opts->verbose) { (print " No!\n") };
+            }
+          }
+        } else {
+          if ($np->opts->verbose) { (print "Interpreted warning as string\n") };
+          if ($np->opts->verbose) { (print "$check_value = $attributes{$attribute}{'warning'} ?") };
+          if ($attributes{$attribute}{'warning'} eq $check_value) {
+            $resultTmp = 1;
+            if ($np->opts->verbose) { (print " Yes!\n") };
+          } else {
+            if ($np->opts->verbose) { (print " No!\n") };
+          }
+        }
+      }
 
-
-       if ( $attributes{$attribute}{'normal'} =~ m/;/ ) {
-         if ($np->opts->verbose) { (print "Interpreted normal as array\n") };
-         my @validvalues = split(';', $attributes{$attribute}{'normal'});
-         foreach my $value ( @validvalues ) {
-           if ($np->opts->verbose) { (print "$check_value = $value ?") };
-           if ($check_value eq $value) {
-             $resultTmp = 0;
-             if ($np->opts->verbose) { (print " Yes!\n") };
-           } else {
-             if ($np->opts->verbose) { (print " No!\n") };
-           }
-         }
-       } else {
-         if ($np->opts->verbose) { (print "Interpreted normal as string\n") };
-         if ($np->opts->verbose) { (print "$check_value = $attributes{$attribute}{'normal'} ?") };
-         if ($attributes{$attribute}{'normal'} eq $check_value) {
-           $resultTmp = 0;
-           if ($np->opts->verbose) { (print " Yes!\n") };
-         } else {
-           if ($np->opts->verbose) { (print " No!\n") };
-         }
-       }
-
+      if ( defined $attributes{$attribute}{'normal'} ) {
+        if ( $attributes{$attribute}{'normal'} =~ m/;/ ) {
+          if ($np->opts->verbose) { (print "Interpreted normal as array\n") };
+          my @validvalues = split(';', $attributes{$attribute}{'normal'});
+          foreach my $value ( @validvalues ) {
+            if ($np->opts->verbose) { (print "$check_value = $value ?") };
+            if ($check_value eq $value) {
+              $resultTmp = 0;
+              if ($np->opts->verbose) { (print " Yes!\n") };
+            } else {
+              if ($np->opts->verbose) { (print " No!\n") };
+            }
+          }
+        } else {
+          if ($np->opts->verbose) { (print "Interpreted normal as string\n") };
+          if ($np->opts->verbose) { (print "$check_value = $attributes{$attribute}{'normal'} ?") };
+          if ($attributes{$attribute}{'normal'} eq $check_value) {
+            $resultTmp = 0;
+            if ($np->opts->verbose) { (print " Yes!\n") };
+          } else {
+            if ($np->opts->verbose) { (print " No!\n") };
+          }
+        }
+      }
 
        if ($np->opts->verbose) { (print "ResultTmp is $resultTmp\n") };
-       if ($resultTmp == -1) {
+       if ($resultTmp == -1 && defined $attributes{$attribute}{'warning'} && defined $attributes{$attribute}{'critical'}) {
          $resultTmp = $np->check_threshold(
            check => $check_value,
            warning => $attributes{$attribute}{'warning'},
